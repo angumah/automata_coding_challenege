@@ -161,11 +161,11 @@ error paths, and each public command.
 For example:
 
 After timeout:
-- Send reset comand: `Ensures fresh tape and ensures xpeeler can move freely to home poisition`
+- Send reset comand: Ensures fresh tape and ensures xpeeler can move freely to home poisition
 
 If `*ready` is returned after this, we can reattempt previously failed command
 
 If `*ready` is not returned:
-- Send restart command: `This will restart the xpeeler, we can send previous command from a fresh start`
+- Send restart command: This will restart the xpeeler, we can send previous command from a fresh start
 
 If this still fails, we can assume a more persistant issue is responsible and propogate errors to the user.
