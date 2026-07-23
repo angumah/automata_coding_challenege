@@ -56,18 +56,15 @@ device -> *ack<CR><LF>              # sent immediately
 device -> *ready:00,00,00<CR><LF>   # sent when the mechanical action finishes
 ```
 
-Commands:
-    - *peel(A, B)* '*xpeel:AB'.
-        'A' = parameter set 1–9 (begin-peel location + speed)
-        'B' = adhere time 1–4 (2.5 / 5 / 7.5 / 10 s). Defaults 'A=4, B=1'
-    - *check_seal()* '*sealcheck'. 
-        The first '*ready' field is '04' if a seal is detected, '00' if not.
-    - *tapeleft()* '*tapeleft'. **Not acknowledged**; 
-        the device replies with `*tape:SS,TT` then `*ready`. 
-        'SS'|'TT' × 10 = approximate peels remaining on the supply spool | capacity on the take-up spool. '99' means "unknown"
-        (before the first motion after power-up) and is returned as `None`.
-    - *reset() | restart()* — `*reset` | `*restart`. 
-        restart` re-emits the power-up sequence, which is drained automatically.
+## Commands
+
+| Method | Message | Description |
+|--------|---------|-------------|
+| `peel(A, B)` | `*xpeel:AB` | `A` = parameter set 1–9 (begin-peel location + speed); `B` = adhere time 1–4 (2.5 / 5 / 7.5 / 10 s). Defaults `A=4, B=1`, i.e. `*xpeel:41`. |
+| `check_seal()` | `*sealcheck` | Returns `True` if a seal is present. The first `*ready` field is `04` when a seal is detected, `00` when not. |
+| `tapeleft()` | `*tapeleft` | Query remaining tape. **Not acknowledged** — the device replies with `*tape:SS,TT` then `*ready`. `SS`/`TT` × 10 ≈ peels remaining on the supply spool / capacity on the take-up spool. `99` means "unknown" (before the first motion after power-up) and is returned as `None`. |
+| `reset()` | `*reset` | Advance to fresh tape and re-home the axes. |
+| `restart()` | `*restart` | Restart the device (equivalent to a power cycle). Re-emits the power-up sequence, which is drained automatically. |
 
 ### `*ready` error codes
 
