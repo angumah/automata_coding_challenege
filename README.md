@@ -9,7 +9,7 @@ protocol.
 - Tests: [`xpeel_tests.py`](xpeel_tests.py)
 
 - Protocol reference: XPeel User Manual 440140
-- command reference p.45–51, unsolicited messages p.51–52, error codes p.56.
+  (command reference p.45–51, unsolicited messages p.51–52, error codes p.56)
 
 ## Requirements
 
@@ -57,17 +57,19 @@ device -> *ready:00,00,00<CR><LF>   # sent when the mechanical action finishes
 ```
 
 Commands:
-    - *peel(A, B)* '*xpeel:AB'.
-        'A' = parameter set 1–9 (begin-peel location + speed)
-        'B' = adhere time 1–4 (2.5 / 5 / 7.5 / 10 s). Defaults 'A=4, B=1'
-    - *check_seal()* '*sealcheck'. 
-        The first '*ready' field is '04' if a seal is detected, '00' if not.
-    - *tapeleft()* '*tapeleft'. **Not acknowledged**; 
-        the device replies with `*tape:SS,TT` then `*ready`. 
-        'SS'|'TT' × 10 = approximate peels remaining on the supply spool | capacity on the take-up spool. '99' means "unknown"
-        (before the first motion after power-up) and is returned as `None`.
-    - *reset() | restart()* — `*reset` | `*restart`. 
-        restart` re-emits the power-up sequence, which is drained automatically.
+
+- **`peel(A, B)`** → `*xpeel:AB`
+  - `A` = parameter set 1–9 (begin-peel location + speed)
+  - `B` = adhere time 1–4 (2.5 / 5 / 7.5 / 10 s)
+  - Defaults: `A=4, B=1`
+- **`check_seal()`** → `*sealcheck`
+  - The first `*ready` field is `04` if a seal is detected, `00` if not.
+- **`tapeleft()`** → `*tapeleft` (**not acknowledged**)
+  - The device replies with `*tape:SS,TT` then `*ready`.
+  - `SS × 10` = approximate peels remaining on the supply spool; `TT × 10` = capacity remaining on the take-up spool.
+  - `99` means "unknown" (before the first motion after power-up) and is returned as `None`.
+- **`reset()` / `restart()`** → `*reset` / `*restart`
+  - `restart` re-emits the power-up sequence, which is drained automatically.
 
 ### `*ready` error codes
 
@@ -157,16 +159,19 @@ error paths, and each public command.
 - Consider an async or thread-based reader if unsolicited messages must be
   handled concurrently with commands.
 
-- Propogate error control/ handling to user via touch screen interface
+- Propagate error control/handling to the user via a touch-screen interface.
 
-- Handle timeouts more robustly. Right now when the driver sends a command it waits for the `*ready` message. If the `*ready` message is not recieved within the timeout we return false, indicating that the command failed. I would modify this slightly to reattempt sending the command up to 2 times. However, in the case of a hardware/ mechanical error, it would be smart to have some kind of procedure to ensure the timeout was purely communication based. 
-    For example:
-    After timeout:
-        Send reset comand:
-            Ensures fresh tape and ensures xpeeler can move freely to home poisition
-        If `*ready` is returned after this, we can reattempt previously failed command
-        If `*ready` is not returned:
-            Send restart command:
-                This will restart the xpeeler, we can send previous command from a fresh start
+- Handle timeouts more robustly. Right now when the driver sends a command it
+  waits for the `*ready` message. If `*ready` is not received within the
+  timeout, we return false, indicating the command failed. I would modify this
+  to reattempt sending the command up to 2 times. However, in the case of a
+  hardware/mechanical error, it would be smart to have a procedure to ensure the
+  timeout was purely communication-based. For example:
 
-            If this still fails, we can assume a more persistant issue is responsible and propogate errors to the user.
+  1. **After a timeout, send a `reset` command** — ensures fresh tape and that
+     the XPeel can move freely to its home position.
+  2. **If `*ready` is returned**, reattempt the previously failed command.
+  3. **If `*ready` is not returned, send a `restart` command** — this restarts
+     the XPeel so the previous command can be sent from a fresh start.
+  4. **If this still fails**, assume a more persistent issue is responsible and
+     propagate the error to the user.
