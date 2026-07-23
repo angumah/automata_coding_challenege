@@ -157,13 +157,15 @@ error paths, and each public command.
 - Propogate error control/ handling to user via touch screen interface
 
 - Handle timeouts more robustly. Right now when the driver sends a command it waits for the `*ready` message. If the `*ready` message is not recieved within the timeout we return false, indicating that the command failed. I would modify this slightly to reattempt sending the command up to 2 times. However, in the case of a hardware/ mechanical error, it would be smart to have some kind of procedure to ensure the timeout was purely communication based. 
-    For example:
-    After timeout:
-        Send reset comand:
-            Ensures fresh tape and ensures xpeeler can move freely to home poisition
-        If `*ready` is returned after this, we can reattempt previously failed command
-        If `*ready` is not returned:
-            Send restart command:
-                This will restart the xpeeler, we can send previous command from a fresh start
 
-            If this still fails, we can assume a more persistant issue is responsible and propogate errors to the user.
+For example:
+
+After timeout:
+- Send reset comand: `Ensures fresh tape and ensures xpeeler can move freely to home poisition`
+
+If `*ready` is returned after this, we can reattempt previously failed command
+
+If `*ready` is not returned:
+- Send restart command: `This will restart the xpeeler, we can send previous command from a fresh start`
+
+If this still fails, we can assume a more persistant issue is responsible and propogate errors to the user.
